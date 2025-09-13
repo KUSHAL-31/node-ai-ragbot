@@ -1,0 +1,46 @@
+{
+  "name": "node-ragbot",
+  "version": "1.0.0",
+  "description": "NPM package for RAG Based Chatbot / Voicebot for Websites",
+  "main": "src/index.js",
+  "types": "src/index.d.ts",
+  "type": "commonjs",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/KUSHAL-31/node-ragbot.git"
+  },
+  "keywords": [
+    "RAG",
+    "AI",
+    "Chatbot",
+    "Voice",
+    "Voice",
+    "BOT",
+    "AI",
+    "Voice"
+  ],
+  "author": "Kushal Soni",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/KUSHAL-31/node-ragbot/issues"
+  },
+  "homepage": "https://github.com/KUSHAL-31/node-ragbot#readme",
+  "dependencies": {
+    "@langchain/community": "^0.3.55",
+    "@langchain/openai": "^0.6.11",
+    "axios": "^1.12.1",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "fast-xml-parser": "^5.2.5",
+    "langchain": "^0.3.33",
+    "mammoth": "^1.10.0",
+    "multer": "^2.0.2",
+    "openai": "^5.20.2",
+    "pdf-parse": "^1.1.1",
+    "puppeteer": "^24.20.0",
+    "tmp": "^0.2.5"
+  }
+}
