@@ -4,10 +4,11 @@
 
 It supports:
 - 🗂 Multiple local files (`.pdf`, `.docx`, `.txt`, `.md`)
-- 🌐 Website scraping with sitemap + recursive crawling
+- 🌐 Website scraping with sitemap + recursive crawling or **exact URLs**
 - 💬 Text-based chatbot via `/chat`
 - 🎙 Voice-based chatbot via `/voice` (Whisper + TTS)
 - ⚡ Fully configurable (models, voice, chunking, embeddings, logger, etc.)
+- 🔌 Works with **Express (plug & play)** or **any backend framework** (handlers provided)
 
 ---
 
@@ -26,25 +27,21 @@ npm install node-ragbot
 
 ---
 
-## 🚀 Quick Start
+## 🚀 Quick Start with Express
 
 `node-ragbot` mounts its routes automatically on your existing Express app.  
-Just call `initializeRagbot(app, config)`.
+Just call `expressRagBot(app, config)`.
 
 ```js
 const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
-const { initializeRagbot } = require("node-ragbot");
+const { expressRagBot } = require("node-ragbot");
 
 const app = express();
-app.use(express.json());
-
-// Global CORS (node-ragbot respects host config)
-app.use(cors({ origin: "http://localhost:5173" }));
 
 // Initialize bot – mounts /api/bot/chat and /api/bot/voice automatically
-initializeRagbot(app, {
+expressRagBot(app, {
   sources: {
     files: ["files/knowledge.txt", "files/knowledge.pdf"],
     // urls: ["https://docs.myproduct.com"],
@@ -57,15 +54,42 @@ initializeRagbot(app, {
   },
 });
 
-const server = app.listen(process.env.PORT || 3001, () => {
-  console.log(`🚀 Server running on http://localhost:${process.env.PORT || 3001}`);
-});
 ```
 
 That’s it ✅ — now your app has:
 
 - `POST /api/bot/chat`  
 - `POST /api/bot/voice`
+
+---
+
+## 🌐 Usage in Other Frameworks or Raw Node.js
+
+If you don’t use Express, you can still use the raw handlers directly.
+
+```js
+const { createRagBot } = require("node-ragbot");
+const http = require("http");
+
+(async () => {
+  const { chatHandler, voiceHandler } = await createRagBot({
+    sources: { files: ["files/knowledge.txt"] },
+    openai: { apiKey: process.env.OPENAI_API_KEY },
+  });
+
+  const server = http.createServer((req, res) => {
+    if (req.url === "/chat" && req.method === "POST") {
+      chatHandler(req, res); // raw Node.js usage
+    } else if (req.url === "/voice" && req.method === "POST") {
+      voiceHandler(req, res);
+    }
+  });
+
+  server.listen(5000, () => console.log("Server running on :5000"));
+})();
+```
+
+This makes it framework-agnostic: you can integrate with **Fastify**, **Koa**, **Hapi**, or any other backend.
 
 ---
 
@@ -96,7 +120,6 @@ That’s it ✅ — now your app has:
   ```json
   {
     "success": true,
-    "transcription": "Detected text",
     "answer": "Generated answer",
     "audio": "Base64 encoded audio response"
   }
@@ -106,7 +129,7 @@ That’s it ✅ — now your app has:
 
 ## ⚙ Configuration
 
-Pass configuration directly when calling `initializeRagbot(app, config)`.
+Pass configuration directly when calling the initialization function.
 
 ```ts
 interface RagConfig {
@@ -134,12 +157,10 @@ interface RagConfig {
     whisper?: {
       model?: string;         // default: whisper-1
       language?: string;      // default: en
-      response_format?: string;
     };
     tts?: {
       model?: string;         // default: tts-1-hd
       voice?: string;         // default: nova
-      response_format?: string;
     };
   };
   logger?: Console;           // default: console

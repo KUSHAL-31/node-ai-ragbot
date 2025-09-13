@@ -22,10 +22,10 @@ async function initRagVoiceBot(userConfig = {}) {
 /**
  * Attach ragbot to an existing Express app automatically.
  */
-function initializeRagbot(app, userConfig = {}) {
+function expressRagBot(app, userConfig = {}) {
   if (!app || typeof app.use !== "function") {
     throw new Error(
-      "initializeRagbot(app, config) requires a valid Express app instance"
+      "expressRagBot(app, config) requires a valid Express app instance"
     );
   }
 
@@ -33,12 +33,12 @@ function initializeRagbot(app, userConfig = {}) {
   initRagVoiceBot(userConfig)
     .then(({ ragbotRouter, cfg }) => {
       app.use("/api/bot", ragbotRouter);
-      cfg.logger.info("✅ RAG bot initialized and mounted at /api/bot");
+      cfg.logger.info("RAG bot initialized and mounted at /api/bot");
     })
     .catch((err) => {
-      console.error("❌ Failed to initialize ragbot:", err);
+      console.error("Failed to initialize ragbot:", err);
       process.exit(1);
     });
 }
 
-module.exports = { initRagVoiceBot, initializeRagbot };
+module.exports = { initRagVoiceBot, expressRagBot };

@@ -60,6 +60,29 @@ async function buildFromUrls(urls, maxPagesPerSite, splitter) {
   return splitter.splitDocuments(pages);
 }
 
+async function buildFromExactUrls(urls, splitter) {
+  if (!urls.length) return [];
+
+  const browser = await launchBrowser();
+  const pages = [];
+
+  try {
+    for (const u of urls) {
+      const page = await extractContentWithPuppeteer(u, browser);
+      if (page?.content?.trim()) {
+        pages.push({
+          pageContent: page.content,
+          metadata: { url: page.url },
+        });
+      }
+    }
+  } finally {
+    await browser.close().catch(() => {});
+  }
+
+  return splitter.splitDocuments(pages);
+}
+
 async function buildFromFiles(files, splitter) {
   const docs = [];
   for (const fp of files) {
@@ -82,11 +105,7 @@ async function buildVectorStore(cfg, logger = console) {
   // URLs
   if (cfg.sources.urls.length) {
     logger.info(`Crawling ${cfg.sources.urls.length} site(s)...`);
-    const urlDocs = await buildFromUrls(
-      cfg.sources.urls,
-      cfg.rag.maxPagesPerSite,
-      splitter
-    );
+    const urlDocs = await buildFromExactUrls(cfg.sources.urls, splitter);
     allDocs.push(...urlDocs);
   }
 
