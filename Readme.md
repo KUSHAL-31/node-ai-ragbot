@@ -1,80 +1,82 @@
-
 # node-ragbot
 
-`node-ragbot` is a Node.js package that enables developers to build intelligent chatbot and voicebot systems with Retrieval-Augmented Generation (RAG) capabilities using OpenAI’s APIs and Langchain.
+`node-ragbot` is a plug-and-play Node.js package for building intelligent chatbot and voicebot systems with **Retrieval-Augmented Generation (RAG)**, powered by **OpenAI** and **LangChain**.
 
-This package supports two modes of data input:
-
-1. Accept a website URL to scrape and generate a RAG index.
-2. Use a set of local files placed in the `files` folder for RAG.
-
-It offers two API endpoints for interactions:
-
-- `/chat` – for text-based chatbot interactions.
-- `/voice` – for voice-based interactions using OpenAI’s Whisper and TTS APIs.
+It supports:
+- 🗂 Multiple local files (`.pdf`, `.docx`, `.txt`, `.md`)
+- 🌐 Website scraping with sitemap + recursive crawling
+- 💬 Text-based chatbot via `/chat`
+- 🎙 Voice-based chatbot via `/voice` (Whisper + TTS)
+- ⚡ Fully configurable (models, voice, chunking, embeddings, logger, etc.)
 
 ---
 
 ## ⚙ Requirements
 
-- Node.js v16 or higher
-- An OpenAI API key (`OPENAI_API_KEY`)
+- Node.js v16 or higher  
+- An OpenAI API key  
 
 ---
 
 ## 📦 Installation
 
 ```bash
-git clone <your-repo-url>
-cd node-ragbot
-npm install
+npm install node-ragbot
 ```
 
 ---
 
-## 📂 Files Folder
+## 🚀 Quick Start
 
-Create a `files` folder in the parent directory where this package is located:
+`node-ragbot` mounts its routes automatically on your existing Express app.  
+Just call `initializeRagbot(app, config)`.
 
+```js
+const express = require("express");
+const cors = require("cors");
+require("dotenv").config();
+const { initializeRagbot } = require("node-ragbot");
+
+const app = express();
+app.use(express.json());
+
+// Global CORS (node-ragbot respects host config)
+app.use(cors({ origin: "http://localhost:5173" }));
+
+// Initialize bot – mounts /api/bot/chat and /api/bot/voice automatically
+initializeRagbot(app, {
+  sources: {
+    files: ["files/knowledge.txt", "files/knowledge.pdf"],
+    // urls: ["https://docs.myproduct.com"],
+  },
+  openai: {
+    apiKey: process.env.OPENAI_API_KEY,
+    chat: { model: "gpt-4o", temperature: 0.3 },
+    whisper: { model: "whisper-1", language: "en" },
+    tts: { model: "tts-1-hd", voice: "nova" },
+  },
+});
+
+const server = app.listen(process.env.PORT || 3001, () => {
+  console.log(`🚀 Server running on http://localhost:${process.env.PORT || 3001}`);
+});
 ```
-parent-directory/
-└── files/
-    ├── document1.txt
-    ├── notes.pdf
-    └── data.json
-```
 
-You can add any number of documents here (PDFs, text files, etc.). These files will be used to build the RAG index.
+That’s it ✅ — now your app has:
 
----
-
-## 🌐 Website Scraping Option
-
-Alternatively, you can provide a website URL to scrape and extract content dynamically. The package will process the content and generate the RAG index for your chatbot or voicebot.
-
----
-
-## ✅ Environment Variables
-
-Create a `.env` file at the root of the project:
-
-```
-OPENAI_API_KEY=sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-```
-
-Replace the value with your OpenAI API key. This key is required for interacting with OpenAI’s Whisper, TTS, and LLM models.
+- `POST /api/bot/chat`  
+- `POST /api/bot/voice`
 
 ---
 
 ## 📡 API Endpoints
 
 ### `/chat`
-
 - **Method**: POST  
 - **Request body**:
   ```json
   {
-    "message": "Your question here"
+    "question": "What is in the knowledge base?"
   }
   ```
 - **Response**:
@@ -85,77 +87,97 @@ Replace the value with your OpenAI API key. This key is required for interacting
   }
   ```
 
-Handles text-based queries by searching the RAG index and generating responses.
-
 ---
 
 ### `/voice`
-
 - **Method**: POST  
-- **Request body**:
-  ```json
-  {
-    "audio": "Base64 encoded audio file"
-  }
-  ```
+- **Form-data**: `audio` field with uploaded audio file (e.g. `.webm`)  
 - **Response**:
   ```json
   {
     "success": true,
-    "transcription": "Detected text from the audio",
-    "answer": "Generated answer from the chatbot",
+    "transcription": "Detected text",
+    "answer": "Generated answer",
     "audio": "Base64 encoded audio response"
   }
   ```
 
-Processes voice input using OpenAI’s Whisper API and converts the response to speech using TTS.
+---
+
+## ⚙ Configuration
+
+Pass configuration directly when calling `initializeRagbot(app, config)`.
+
+```ts
+interface RagConfig {
+  sources: {
+    files?: string[];   // Local file paths (.pdf, .docx, .txt, .md)
+    urls?: string[];    // Website URLs
+  };
+  rag?: {
+    maxPagesPerSite?: number; // default: 30
+    textSplit?: {
+      chunkSize?: number;     // default: 1000
+      chunkOverlap?: number;  // default: 200
+    };
+    topK?: number;            // default: 3
+  };
+  openai: {
+    apiKey: string;
+    embeddings?: { model?: string }; // default: text-embedding-3-small
+    chat?: {
+      model?: string;         // default: gpt-4o
+      temperature?: number;   // default: 0.3
+      maxTokens?: number;     // default: 200
+      promptTemplate?: string;
+    };
+    whisper?: {
+      model?: string;         // default: whisper-1
+      language?: string;      // default: en
+      response_format?: string;
+    };
+    tts?: {
+      model?: string;         // default: tts-1-hd
+      voice?: string;         // default: nova
+      response_format?: string;
+    };
+  };
+  logger?: Console;           // default: console
+}
+```
 
 ---
 
 ## 📂 Memory Vector Storage
 
-This package uses Langchain’s **Memory Vector Store** to hold indexed data extracted from files or scraped content. It enables fast similarity searches and relevance-based retrieval for conversational AI.
+This package uses LangChain’s **Memory Vector Store** to hold indexed data extracted from files or scraped content.
 
-- The data is stored in memory for quick access.
-- It is not persistent and will be rebuilt each time the server restarts.
-- Suitable for real-time and small-to-medium datasets.
-
----
-
-## 🔑 Security
-
-- The OpenAI API key is stored in the `.env` file and should never be exposed publicly.
-- Audio data is processed in-memory and not stored persistently on the server.
+- Data is stored in memory for quick access.  
+- It is not persistent and will be rebuilt each time the server restarts.  
+- Suitable for real-time and small-to-medium datasets.  
 
 ---
 
-## 🚀 Run the Server
+## 🔒 Security
 
-```bash
-npm start
-```
-
-The server will build the RAG index from the files or website, and expose the `/chat` and `/voice` endpoints for interaction.
+- The OpenAI API key is **passed via config**, not hardcoded.  
+- CORS is handled by the host server.  
+- Audio is processed in-memory, not stored.  
+- Vector store is in-memory (rebuilt on restart).  
 
 ---
 
-## 📂 Directory Structure
+## 📂 Example Project Structure
 
 ```
-node-ragbot/
+my-app/
+├── files/
+│   ├── knowledge.txt
+│   ├── knowledge.pdf
 ├── server.js
-├── routes/
-│   ├── ragRoutes.js
-│   └── openAiRoutes.js
-├── utils/
-│   ├── loaders.js
-│   ├── voiceHelper.js
-├── .env
 ├── package.json
 └── README.md
 ```
-
-Files in the `files` folder should be placed in the parent directory.
 
 ---
 
