@@ -1,7 +1,7 @@
 {
-  "name": "node-ragbot",
+  "name": "node-ai-ragbot",
   "version": "1.0.0",
-  "description": "NPM package for RAG Based Chatbot / Voicebot for Websites",
+  "description": "Node.js backend package for building AI chatbots and voicebots with Retrieval-Augmented Generation (RAG). It ingests website pages or local files (PDF, DOCX, TXT, MD), creates embeddings with LangChain + OpenAI, stores them in a fast in-memory vector database, and powers intelligent chat (/chat) and voice (/voice) APIs with OpenAI's GPT models. Perfect for creating knowledge-based AI assistants and voicebots.",
   "main": "src/index.js",
   "types": "src/index.d.ts",
   "type": "commonjs",
@@ -10,24 +10,41 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/KUSHAL-31/node-ragbot.git"
+    "url": "git+https://github.com/KUSHAL-31/node-ai-ragbot.git"
   },
   "keywords": [
-    "RAG",
-    "AI",
-    "Chatbot",
-    "Voice",
-    "Voice",
-    "BOT",
-    "AI",
-    "Voice"
+    "node",
+    "express",
+    "rag",
+    "retrieval-augmented-generation",
+    "ai",
+    "chatbot",
+    "voicebot",
+    "virtual-assistant",
+    "conversational-ai",
+    "openai",
+    "gpt",
+    "gpt-4",
+    "gpt-4o",
+    "whisper",
+    "tts",
+    "speech-to-text",
+    "text-to-speech",
+    "langchain",
+    "embeddings",
+    "vector-database",
+    "knowledge-base",
+    "nlp",
+    "backend",
+    "server",
+    "automation"
   ],
   "author": "Kushal Soni",
-  "license": "ISC",
+  "license": "MIT",
   "bugs": {
-    "url": "https://github.com/KUSHAL-31/node-ragbot/issues"
+    "url": "https://github.com/KUSHAL-31/node-ai-ragbot/issues"
   },
-  "homepage": "https://github.com/KUSHAL-31/node-ragbot#readme",
+  "homepage": "https://github.com/KUSHAL-31/node-ai-ragbot#readme",
   "dependencies": {
     "@langchain/community": "^0.3.55",
     "@langchain/openai": "^0.6.11",

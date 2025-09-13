@@ -1,14 +1,14 @@
-# node-ragbot
+# node-ai-ragbot
 
-`node-ragbot` is a plug-and-play Node.js package for building intelligent chatbot and voicebot systems with **Retrieval-Augmented Generation (RAG)**, powered by **OpenAI** and **LangChain**.
+`node-ai-ragbot` is a plug-and-play Node.js package for building intelligent chatbot and voicebot systems with **Retrieval-Augmented Generation (RAG)**, powered by **OpenAI** and **LangChain**.
 
 It supports:
-- 🗂 Multiple local files (`.pdf`, `.docx`, `.txt`, `.md`)
-- 🌐 Website scraping with sitemap + recursive crawling or **exact URLs**
-- 💬 Text-based chatbot via `/chat`
-- 🎙 Voice-based chatbot via `/voice` (Whisper + TTS)
-- ⚡ Fully configurable (models, voice, chunking, embeddings, logger, etc.)
-- 🔌 Works with **Express (plug & play)** or **any backend framework** (handlers provided)
+- Multiple local files (`.pdf`, `.docx`, `.txt`, `.md`)
+- Website scraping with sitemap + recursive crawling or **exact URLs**
+- Text-based chatbot via `/chat`
+- Voice-based chatbot via `/voice` (Whisper + TTS)
+- Fully configurable (models, voice, chunking, embeddings, logger, etc.)
+- Works with **Express (plug & play)** or **any backend framework** (handlers provided)
 
 ---
 
@@ -19,24 +19,24 @@ It supports:
 
 ---
 
-## 📦 Installation
+## Installation
 
 ```bash
-npm install node-ragbot
+npm install node-ai-ragbot
 ```
 
 ---
 
-## 🚀 Quick Start with Express
+## Quick Start with Express
 
-`node-ragbot` mounts its routes automatically on your existing Express app.  
+`node-ai-ragbot` mounts its routes automatically on your existing Express app.  
 Just call `expressRagBot(app, config)`.
 
 ```js
 const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
-const { expressRagBot } = require("node-ragbot");
+const { expressRagBot } = require("node-ai-ragbot");
 
 const app = express();
 
@@ -56,19 +56,19 @@ expressRagBot(app, {
 
 ```
 
-That’s it ✅ — now your app has:
+That’s it — now your app has:
 
 - `POST /api/bot/chat`  
 - `POST /api/bot/voice`
 
 ---
 
-## 🌐 Usage in Other Frameworks or Raw Node.js
+## Usage in Other Frameworks or Raw Node.js
 
 If you don’t use Express, you can still use the raw handlers directly.
 
 ```js
-const { createRagBot } = require("node-ragbot");
+const { createRagBot } = require("node-ai-ragbot");
 const http = require("http");
 
 (async () => {
@@ -93,7 +93,7 @@ This makes it framework-agnostic: you can integrate with **Fastify**, **Koa**, *
 
 ---
 
-## 📡 API Endpoints
+## API Endpoints
 
 ### `/chat`
 - **Method**: POST  
@@ -169,7 +169,7 @@ interface RagConfig {
 
 ---
 
-## 📂 Memory Vector Storage
+## Memory Vector Storage
 
 This package uses LangChain’s **Memory Vector Store** to hold indexed data extracted from files or scraped content.
 
@@ -179,7 +179,7 @@ This package uses LangChain’s **Memory Vector Store** to hold indexed data ext
 
 ---
 
-## 🔒 Security
+## Security
 
 - The OpenAI API key is **passed via config**, not hardcoded.  
 - CORS is handled by the host server.  
@@ -188,7 +188,7 @@ This package uses LangChain’s **Memory Vector Store** to hold indexed data ext
 
 ---
 
-## 📂 Example Project Structure
+## Example Project Structure
 
 ```
 my-app/
@@ -202,8 +202,8 @@ my-app/
 
 ---
 
-## 📞 Contact
+## Contact
 
 For issues or feature requests, please open a GitHub issue or contact the maintainer.
 
-Happy building with `node-ragbot`! 🚀🤖
+Happy building with `node-ai-ragbot`! 
