@@ -1,6 +1,6 @@
 {
   "name": "node-ai-ragbot",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Node.js backend package for building AI chatbots and voicebots with Retrieval-Augmented Generation (RAG). It ingests website pages or local files (PDF, DOCX, TXT, MD), creates embeddings with LangChain + OpenAI, stores them in a fast in-memory vector database, and powers intelligent chat (/chat) and voice (/voice) APIs with OpenAI's GPT models. Perfect for creating knowledge-based AI assistants and voicebots.",
   "main": "src/index.js",
   "types": "src/index.d.ts",
