@@ -68,24 +68,31 @@ That’s it — now your app has:
 If you don’t use Express, you can still use the raw handlers directly.
 
 ```js
-const { createRagBot } = require("node-ai-ragbot");
-const http = require("http");
-
-(async () => {
-  const { chatHandler, voiceHandler } = await createRagBot({
+const { initRagVoiceBot } = require("node-ai-ragbot");
+    
+    (async () => {
+  const { chatHandler, voiceHandler } = await initRagVoiceBot({
     sources: { files: ["files/knowledge.txt"] },
     openai: { apiKey: process.env.OPENAI_API_KEY },
   });
 
-  const server = http.createServer((req, res) => {
-    if (req.url === "/chat" && req.method === "POST") {
-      chatHandler(req, res); // raw Node.js usage
-    } else if (req.url === "/voice" && req.method === "POST") {
-      voiceHandler(req, res);
-    }
-  });
+  //Express
+  app.post("/chat", chatHandler);
+  app.post("/voice", voiceHandler);
 
-  server.listen(5000, () => console.log("Server running on :5000"));
+  //Fastify
+  fastify.post("/chat", (req, reply) => chatHandler(req.raw, reply.raw));
+  fastify.post("/voice", (req, reply) => voiceHandler(req.raw, reply.raw));
+
+  //NestJS
+  @Post("chat") chat(@Req() req, @Res() res) { return chatHandler(req, res); }
+  @Post("voice") voice(@Req() req, @Res() res) { return voiceHandler(req, res); }
+
+  //Raw Node.js
+  const server = http.createServer((req, res) => {
+    if (req.url === "/chat") chatHandler(req, res);
+    else if (req.url === "/voice") voiceHandler(req, res);
+  });
 })();
 ```
 
