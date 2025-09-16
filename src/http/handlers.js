@@ -1,4 +1,5 @@
-const { AppError, errorToHttp } = require("../utils/errors");
+// src/http/handlers.js
+const { AppError } = require("../utils/errors");
 const { queryRAG } = require("../rag/query");
 const { processAudio, generateAudio } = require("../voice/voice");
 
@@ -8,15 +9,18 @@ const makeChatHandler =
     try {
       const { question } = req.body || {};
       if (!question || typeof question !== "string" || !question.trim()) {
-        throw new AppError(
-          "QUESTION_REQUIRED",
-          "Question is required in request body."
-        );
+        throw new AppError("QUESTION_REQUIRED", "Question is required.", 400);
       }
+
+      // Get answer from RAG
       const answer = await queryRAG(vectorStore, question, cfg, logger);
+
+      // Return complete response
       return res.status(200).json({ success: true, answer });
     } catch (err) {
-      return errorToHttp(res, err, logger);
+      // Let adapters map errors consistently
+      if (res.error) return res.error(err);
+      throw err;
     }
   };
 
@@ -24,21 +28,31 @@ const makeVoiceHandler =
   ({ vectorStore, cfg, logger }) =>
   async (req, res) => {
     try {
-      const file = req.file;
-      if (!file || !file.buffer) {
+      const audioBuffer = req.audioBuffer;
+      if (!audioBuffer || !Buffer.isBuffer(audioBuffer)) {
         throw new AppError(
           "AUDIO_REQUIRED",
-          'No audio file uploaded (field name: "audio").'
+          "audioBuffer (Buffer) is required in request.",
+          400
         );
       }
 
-      const transcription = await processAudio(file.buffer, cfg);
+      // Process audio to get transcription
+      const transcription = await processAudio(audioBuffer, cfg);
+
+      // Get answer from RAG
       const answer = await queryRAG(vectorStore, transcription, cfg, logger);
+
+      // Generate audio response
       const audio = await generateAudio(answer, cfg);
 
-      return res.status(200).json({ success: true, answer, audio });
+      // Return everything in one response
+      return res
+        .status(200)
+        .json({ success: true, transcription, answer, audio });
     } catch (err) {
-      return errorToHttp(res, err, logger);
+      if (res.error) return res.error(err);
+      throw err;
     }
   };
 

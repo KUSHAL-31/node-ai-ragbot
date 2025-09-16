@@ -1,44 +1,26 @@
+// src/index.js
 const defaults = require("./config/defaults");
 const { normalizeConfig } = require("./config/validate");
 const { buildVectorStore } = require("./rag/builder");
-const { createRouter } = require("./http/router");
+const { makeChatHandler, makeVoiceHandler } = require("./http/handlers");
+const adapters = require("./http/adapters");
 
 /**
- * Bootstraps vector store + handlers
+ * Initialize vector store + framework-agnostic handlers.
  */
 async function initRagVoiceBot(userConfig = {}) {
   const cfg = normalizeConfig(userConfig, defaults);
   const vectorStore = await buildVectorStore(cfg, cfg.logger);
 
-  const { ragbotRouter, chatHandler, voiceHandler } = createRouter({
+  const chatHandler = makeChatHandler({ vectorStore, cfg, logger: cfg.logger });
+
+  const voiceHandler = makeVoiceHandler({
     vectorStore,
     cfg,
     logger: cfg.logger,
   });
 
-  return { vectorStore, cfg, ragbotRouter, chatHandler, voiceHandler };
+  return { vectorStore, cfg, chatHandler, voiceHandler, adapters };
 }
 
-/**
- * Attach ragbot to an existing Express app automatically.
- */
-function expressRagBot(app, userConfig = {}) {
-  if (!app || typeof app.use !== "function") {
-    throw new Error(
-      "expressRagBot(app, config) requires a valid Express app instance"
-    );
-  }
-
-  // Fire async init in background
-  initRagVoiceBot(userConfig)
-    .then(({ ragbotRouter, cfg }) => {
-      app.use("/api/bot", ragbotRouter);
-      cfg.logger.info("RAG bot initialized and mounted at /api/bot");
-    })
-    .catch((err) => {
-      console.error("Failed to initialize ragbot:", err);
-      process.exit(1);
-    });
-}
-
-module.exports = { initRagVoiceBot, expressRagBot };
+module.exports = { initRagVoiceBot, adapters };
