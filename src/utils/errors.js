@@ -1,3 +1,4 @@
+// src/utils/errors.js
 class AppError extends Error {
   constructor(code, message, status = 400, details = undefined) {
     super(message);
@@ -12,26 +13,33 @@ const assert = (cond, code, message, status = 400, details) => {
   if (!cond) throw new AppError(code, message, status, details);
 };
 
-const errorToHttp = (res, err, logger = console) => {
+function errorToHttpPayload(err) {
   if (err instanceof AppError) {
-    logger.error(`[${err.code}] ${err.message}`, err.details || "");
-    return res.status(err.status).json({
+    return {
+      status: err.status || 400,
+      headers: { "Content-Type": "application/json" },
+      body: {
+        success: false,
+        error: {
+          code: err.code,
+          message: err.message,
+          details: err.details || null,
+        },
+      },
+    };
+  }
+  // Unexpected
+  return {
+    status: 500,
+    headers: { "Content-Type": "application/json" },
+    body: {
       success: false,
       error: {
-        code: err.code,
-        message: err.message,
-        details: err.details || null,
+        code: "UNEXPECTED_ERROR",
+        message: "An unexpected error occurred.",
       },
-    });
-  }
-  logger.error("[UNEXPECTED_ERROR]", err);
-  return res.status(500).json({
-    success: false,
-    error: {
-      code: "UNEXPECTED_ERROR",
-      message: "An unexpected error occurred.",
     },
-  });
-};
+  };
+}
 
-module.exports = { AppError, assert, errorToHttp };
+module.exports = { AppError, assert, errorToHttpPayload };

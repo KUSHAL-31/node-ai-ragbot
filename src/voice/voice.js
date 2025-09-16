@@ -1,36 +1,28 @@
-const fs = require("fs");
-const path = require("path");
-const tmp = require("tmp");
+// src/voice/voice.js
 const { OpenAI } = require("openai");
 const { AppError } = require("../utils/errors");
 
-function bufferToTempFile(buffer, ext = ".webm") {
-  const tmpFile = tmp.fileSync({ postfix: ext });
-  fs.writeFileSync(tmpFile.name, buffer);
-  return tmpFile;
-}
-
+/**
+ * Convert raw audio Buffer to transcription.
+ * Uses buffer directly (no tmp files, no multer).
+ */
 async function processAudio(buffer, cfg) {
   try {
     const client = new OpenAI({ apiKey: cfg.openai.apiKey });
-    const tmpFile = bufferToTempFile(buffer, ".webm");
 
-    try {
-      const stream = fs.createReadStream(tmpFile.name);
-      const transcription = await client.audio.transcriptions.create({
-        file: stream,
-        model: cfg.openai.whisper.model,
-        language: cfg.openai.whisper.language,
-        response_format: cfg.openai.whisper.response_format,
-      });
-      return typeof transcription === "string"
-        ? transcription
-        : `${transcription?.text || ""}`.trim();
-    } finally {
-      try {
-        fs.unlinkSync(tmpFile.name);
-      } catch {}
-    }
+    // OpenAI SDK accepts a Uint8Array or Blob-like via toFile helper.
+    // We'll name it audio.webm by default; set ext via cfg if needed.
+    const fileName = cfg.voice?.inputFileName || "audio.webm";
+    const transcription = await client.audio.transcriptions.create({
+      file: new File([buffer], fileName, { type: "audio/webm" }),
+      model: cfg.openai.whisper.model,
+      language: cfg.openai.whisper.language,
+      response_format: cfg.openai.whisper.response_format,
+    });
+
+    return typeof transcription === "string"
+      ? transcription
+      : `${transcription?.text || ""}`.trim();
   } catch (err) {
     throw new AppError(
       "OPENAI_TRANSCRIPTION_FAILED",
@@ -40,6 +32,9 @@ async function processAudio(buffer, cfg) {
   }
 }
 
+/**
+ * Generate TTS and return base64 audio.
+ */
 async function generateAudio(text, cfg) {
   try {
     const client = new OpenAI({ apiKey: cfg.openai.apiKey });
@@ -47,11 +42,11 @@ async function generateAudio(text, cfg) {
       model: cfg.openai.tts.model,
       voice: cfg.openai.tts.voice,
       input: text,
-      response_format: cfg.openai.tts.response_format,
+      response_format: cfg.openai.tts.response_format, // "mp3" | "wav" | ...
     });
 
     const buffer = Buffer.from(await resp.arrayBuffer());
-    return buffer.toString("base64"); // return base64 mp3/wav per response_format
+    return buffer.toString("base64");
   } catch (err) {
     throw new AppError(
       "OPENAI_TTS_FAILED",
@@ -61,4 +56,16 @@ async function generateAudio(text, cfg) {
   }
 }
 
-module.exports = { processAudio, generateAudio };
+/**
+ * Utility to split a big base64 audio string into smaller chunks
+ * for progressive playback over SSE.
+ */
+function chunkBase64Audio(base64, size = 48000) {
+  const chunks = [];
+  for (let i = 0; i < base64.length; i += size) {
+    chunks.push(base64.slice(i, i + size));
+  }
+  return chunks;
+}
+
+module.exports = { processAudio, generateAudio, chunkBase64Audio };

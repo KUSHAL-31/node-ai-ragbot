@@ -19,7 +19,7 @@ module.exports = {
       temperature: 0.3,
       promptTemplate: `You are an expert assistant answering questions using ONLY the information provided in the context below. Respond naturally, in simple language, under 70 words. If the context is insufficient, say you don’t have enough information and ask for another question.\n\nCONTEXT:\n{{context}}\n\nQUESTION:\n{{question}}\n\nANSWER:`,
     },
-    whisper: {
+    stt: {
       model: "whisper-1",
       language: "en",
       response_format: "text",
@@ -28,15 +28,6 @@ module.exports = {
       model: "tts-1",
       voice: "alloy", // alloy, echo, fable, onyx, nova, shimmer, marin (if supported), etc.
       response_format: "mp3",
-    },
-  },
-  http: {
-    cors: {
-      origins: [], // e.g. ['http://localhost:5173']
-      credentials: true,
-    },
-    multer: {
-      fileSizeMb: 10,
     },
   },
   logger: console, // can be replaced by your custom logger

@@ -1,32 +1,43 @@
-const axios = require("axios");
 const { XMLParser } = require("fast-xml-parser");
 
 async function findSitemap(baseUrl) {
   try {
     const robotsUrl = `${baseUrl.replace(/\/$/, "")}/robots.txt`;
-    const { data } = await axios.get(robotsUrl, { timeout: 10000 });
-    const lines = `${data}`.split("\n");
+    const res = await fetch(robotsUrl, { method: "GET", timeout: 10000 });
+    if (!res.ok) throw new Error("Failed to fetch robots.txt");
+    const data = await res.text();
+    const lines = data.split("\n");
     for (const line of lines) {
       if (line.toLowerCase().startsWith("sitemap:")) {
         return line.split(":").slice(1).join(":").trim();
       }
     }
   } catch {}
+
   for (const path of ["/sitemap.xml", "/sitemap_index.xml"]) {
     try {
       const url = `${baseUrl.replace(/\/$/, "")}${path}`;
-      await axios.head(url, { timeout: 10000 });
-      return url;
+      const res = await fetch(url, { method: "HEAD", timeout: 10000 });
+      if (res.ok) {
+        return url;
+      }
     } catch {}
   }
+
   return null;
 }
 
 async function fetchSitemapLinks(sitemapUrl, maxUrls = 100) {
-  const { data } = await axios.get(sitemapUrl, { timeout: 15000 });
+  const res = await fetch(sitemapUrl, { method: "GET", timeout: 15000 });
+  if (!res.ok) {
+    throw new Error(`Failed to fetch sitemap at ${sitemapUrl}`);
+  }
+  const data = await res.text();
   const parser = new XMLParser({ ignoreAttributes: false });
   const jsonData = parser.parse(data);
+
   let urls = [];
+
   if (jsonData.sitemapindex?.sitemap) {
     const sitemaps = Array.isArray(jsonData.sitemapindex.sitemap)
       ? jsonData.sitemapindex.sitemap
@@ -49,6 +60,7 @@ async function fetchSitemapLinks(sitemapUrl, maxUrls = 100) {
       if (urls.length >= maxUrls) break;
     }
   }
+
   return [...new Set(urls)].slice(0, maxUrls);
 }
 
